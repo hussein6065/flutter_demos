@@ -38,9 +38,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    void _login() => _bloc.add(LoginWithPassword(
-        username: _usernameController.text,
-        password: _passwordController.text));
+    void _login() => _bloc.add(
+          LoginWithPassword(
+              username: _usernameController.text,
+              password: _passwordController.text),
+        );
 
     void _handleLoginFailed(String errorCode, String errorDescription) {
       if (errorCode == 'ERROR_INVALID_USERNAME') {
