@@ -1,0 +1,119 @@
+{
+  "project_info": {
+    "project_number": "442196969038",
+    "firebase_url": "https://scloosapp-test-default-rtdb.firebaseio.com",
+    "project_id": "scloosapp-test",
+    "storage_bucket": "scloosapp-test.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442196969038:android:ec2040721d0510f7d9a51f",
+        "android_client_info": {
+          "package_name": "com.nokwary.scloosapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "442196969038-m01jhebqeqdqjbnedf45iotq5dunsope.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJHADSOkTNKj2UjaE9xqmHNdXDfvvquac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442196969038-m01jhebqeqdqjbnedf45iotq5dunsope.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "442196969038-rilor3v0rp0k6qk4i58nftqim6qpatf7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nokwary.scloosapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442196969038:android:e8fb82aecd77c058d9a51f",
+        "android_client_info": {
+          "package_name": "com.voximplant.flutter.audiocall"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "442196969038-m01jhebqeqdqjbnedf45iotq5dunsope.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJHADSOkTNKj2UjaE9xqmHNdXDfvvquac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442196969038-m01jhebqeqdqjbnedf45iotq5dunsope.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "442196969038-rilor3v0rp0k6qk4i58nftqim6qpatf7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nokwary.scloosapp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442196969038:android:e72410cd3241e0abd9a51f",
+        "android_client_info": {
+          "package_name": "com.voximplant.flutter.videocall"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "442196969038-m01jhebqeqdqjbnedf45iotq5dunsope.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJHADSOkTNKj2UjaE9xqmHNdXDfvvquac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442196969038-m01jhebqeqdqjbnedf45iotq5dunsope.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "442196969038-rilor3v0rp0k6qk4i58nftqim6qpatf7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.nokwary.scloosapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
