@@ -1,3 +1,5 @@
+import 'dart:async';
+
 /// Copyright (c) 2011-2020, Zingaya, Inc. All rights reserved.
 import 'dart:io';
 
@@ -22,6 +24,34 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   MainBloc _bloc;
 
+  var timeout = Duration(seconds: 3);
+  var ms = Duration(milliseconds: 1);
+  var calltime = Duration(seconds: 90);
+  String timeLeft = '00:00';
+
+  Timer startTimeout(int milliseconds) {
+    var duration = Duration(seconds: 1);
+    // var timer = Timer(duration, _handleTimeout);
+    return Timer.periodic(duration, (timer) {
+      int tim = calltime.inSeconds - timer.tick;
+      var t = Duration(seconds: tim).toString().split(RegExp(r"[:.]"));
+      tim == 0
+          ? timer.cancel()
+          : setState(() {
+              timeLeft = "${t[1]}:${t[2]}";
+            });
+      // print(timer.tick);
+    });
+  }
+
+  void _handleTimeout() {
+    var time = DateTime.now().second;
+    // print('Hussein $time');
+    setState(() {
+      _callToController.text = 'Hussein $time';
+    });
+  }
+
   final _callToController = TextEditingController();
 
   @override
@@ -29,6 +59,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     super.initState();
     _bloc = BlocProvider.of<MainBloc>(context);
     WidgetsBinding.instance.addObserver(this);
+    startTimeout(5000);
   }
 
   @override
@@ -76,7 +107,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             content: Text(
                 'Please give "record audio" and "camera" permissions to make calls'),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text('Close'),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -140,10 +171,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
+                          Widgets.textWithPadding(text: timeLeft),
+                          Widgets.timerLabel(text: timeLeft),
                           Widgets.textFormField(
-                              controller: _callToController,
-                              darkBackground: false,
-                              labelText: 'user or number'),
+                            controller: _callToController,
+                            darkBackground: false,
+                            labelText: 'user or number',
+                          ),
                           Widgets.maxWidthRaisedButton(
                             text: 'Video call',
                             onPressed: _makeVideoCall,

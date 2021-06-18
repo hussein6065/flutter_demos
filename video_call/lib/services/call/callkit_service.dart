@@ -85,9 +85,7 @@ class CallKitService {
       }
 
       try {
-        await Voximplant()
-            .getAudioDeviceManager()
-            .callKitConfigureAudioSession();
+        await Voximplant().audioDeviceManager.callKitConfigureAudioSession();
         await _callService.makeCall(callTo: startCallAction.handle.value);
         _callService.callKitUUID = startCallAction.callUuid;
         await _provider.reportOutgoingCall(startCallAction.callUuid, null);
@@ -112,9 +110,7 @@ class CallKitService {
                   (_activeCall?.call?.hasConnected ?? false)
               ? await _callService.hangup()
               : await _callService.decline();
-          await Voximplant()
-              .getAudioDeviceManager()
-              .callKitReleaseAudioSession();
+          await Voximplant().audioDeviceManager.callKitReleaseAudioSession();
           forgetCall(endCallAction.callUuid);
           await endCallAction.fulfill();
         } catch (e) {
@@ -143,9 +139,7 @@ class CallKitService {
 
       Future<void> _answer() async {
         try {
-          await Voximplant()
-              .getAudioDeviceManager()
-              .callKitConfigureAudioSession();
+          await Voximplant().audioDeviceManager.callKitConfigureAudioSession();
           await _callService.answerCall();
           await answerCallAction.fulfill();
         } catch (e) {
@@ -193,11 +187,11 @@ class CallKitService {
       }
     };
 
-    _provider.providerDidActivateAudioSession = () async =>
-        await Voximplant().getAudioDeviceManager().callKitStartAudio();
+    _provider.providerDidActivateAudioSession =
+        () async => await Voximplant().audioDeviceManager.callKitStartAudio();
 
-    _provider.providerDidDeactivateAudioSession = () async =>
-        await Voximplant().getAudioDeviceManager().callKitStopAudio();
+    _provider.providerDidDeactivateAudioSession =
+        () async => await Voximplant().audioDeviceManager.callKitStopAudio();
 
     _callController.callObserver.callChanged = (call) async {
       if (call.hasEnded) {
@@ -282,6 +276,8 @@ class CallKitService {
     }
     await _provider.reportOutgoingCallConnected(_activeCall?.uuid, null);
   }
+
+  // CallWrapper get getCallerWrapper => _activeCall;
 
   Future<void> _reportUpdated(
           String username, String displayName, bool hasVideo) async =>

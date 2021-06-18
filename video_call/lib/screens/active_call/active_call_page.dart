@@ -1,3 +1,5 @@
+import 'dart:async';
+
 /// Copyright (c) 2011-2020, Zingaya, Inc. All rights reserved.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,12 +30,36 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
 
   _ActiveCallPageState();
 
+  //call timing
+  String _timeLeft = '00:00';
+  var _timeout = Duration(seconds: 1);
+  var _callTime = Duration(minutes: 2);
+  dynamic callTimeOut() {
+    if (_bloc.getCallState) {
+      return Timer.periodic(_timeout, (timer) {
+        int timeLeft = _callTime.inSeconds - timer.tick;
+        var time =
+            Duration(seconds: timeLeft).toString().split(RegExp(r"[:.]"));
+
+        if (timeLeft == 0) {
+          timer.cancel();
+        }
+        setState(() {
+          _timeLeft = "${time[1]}:${time[2]}";
+        });
+      });
+    } else {
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _bloc = BlocProvider.of<ActiveCallBloc>(context);
     _localVideoViewController.addListener(_localVideoHasChanged);
     _remoteVideoViewController.addListener(_remoteVideoHasChanged);
+    callTimeOut();
   }
 
   @override
@@ -62,6 +88,63 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
     void _sendVideo(bool send) => _bloc.add(SendVideoPressedEvent(send: send));
 
     void _switchCamera() => _bloc.add(SwitchCameraPressedEvent());
+    void _selectAudioDevice(VIAudioDevice device) => _bloc.add(
+          SelectAudioDevicePressedEvent(device: device),
+        );
+
+    IconData _getIconForDevice(VIAudioDevice device) {
+      switch (device) {
+        case VIAudioDevice.Bluetooth:
+          return Icons.bluetooth_audio;
+        case VIAudioDevice.Speaker:
+          return Icons.volume_up;
+        case VIAudioDevice.WiredHeadset:
+          return Icons.headset;
+        default:
+          return Icons.hearing;
+      }
+    }
+
+    String _getNameForDevice(VIAudioDevice device) {
+      List<String> splitted = device.toString().split('.');
+      if (splitted != null && splitted.length >= 2) {
+        return splitted[1];
+      } else {
+        return device.toString();
+      }
+    }
+
+    _showAvailableAudioDevices(List<VIAudioDevice> devices) {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Select audio device'),
+            content: SingleChildScrollView(
+              child: Container(
+                width: 100,
+                height: 100,
+                child: ListView.builder(
+                  itemCount: devices.length,
+                  itemBuilder: (_, int index) {
+                    return TextButton(
+                      child: Text(
+                        _getNameForDevice(devices[index]),
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      onPressed: () {
+                        _selectAudioDevice(devices[index]);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
 
     return BlocListener<ActiveCallBloc, ActiveCallState>(
       listener: (context, state) {
@@ -91,6 +174,10 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                     child: Container(
                       child: Stack(
                         children: <Widget>[
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Widgets.timerLabel(text: _timeLeft),
+                          ),
                           Align(
                             alignment: Alignment.center,
                             child: AspectRatio(
@@ -172,10 +259,21 @@ class _ActiveCallPageState extends State<ActiveCallPage> {
                                   _sendVideo(state.localVideoStreamID == null);
                                 }),
                             Widgets.iconButton(
-                                icon: Icons.call_end,
-                                color: VoximplantColors.red,
-                                tooltip: 'Hang up',
-                                onPressed: _hangup)
+                              icon: Icons.call_end,
+                              color: VoximplantColors.red,
+                              tooltip: 'Hang up',
+                              onPressed: _hangup,
+                            ),
+                            Widgets.iconButton(
+                              icon: _getIconForDevice(state.activeAudioDevice),
+                              color: VoximplantColors.button,
+                              tooltip: 'Change the Speaker',
+                              onPressed: () {
+                                _showAvailableAudioDevices(
+                                  state.availableAudioDevices,
+                                );
+                              },
+                            )
                           ],
                         ),
                       ],

@@ -1,6 +1,9 @@
 /// Copyright (c) 2011-2020, Zingaya, Inc. All rights reserved.
 import 'package:meta/meta.dart';
+import 'package:video_call/services/call/audio_device_event.dart';
 import 'package:video_call/services/call/call_event.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_voximplant/flutter_voximplant.dart';
 
 abstract class ActiveCallEvent {}
 
@@ -37,4 +40,18 @@ class MutePressedEvent implements ActiveCallEvent {
   MutePressedEvent({@required this.mute});
 }
 
+class SelectAudioDevicePressedEvent implements ActiveCallEvent {
+  final VIAudioDevice device;
+
+  SelectAudioDevicePressedEvent({
+    @required this.device,
+  });
+}
+class AudioDevicesChanged implements ActiveCallEvent {
+  final AudioDeviceEvent event;
+
+  AudioDevicesChanged({
+    @required this.event,
+  });
+}
 class HangupPressedEvent implements ActiveCallEvent {}

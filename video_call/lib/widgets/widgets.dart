@@ -1,8 +1,30 @@
+import 'dart:ffi';
+
 /// Copyright (c) 2011-2020, Zingaya, Inc. All rights reserved.
 import 'package:flutter/material.dart';
 import 'package:video_call/theme/voximplant_theme.dart';
 
 class Widgets {
+  static Widget timerLabel({@required String text}) {
+    return Container(
+      // ch/ild:
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 25,
+          color: Colors.white,
+        ),
+      ),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      decoration: BoxDecoration(
+          color: VoximplantColors.button,
+          borderRadius: BorderRadius.circular(5)),
+    );
+  }
+
   static Widget textFormField(
       {@required TextEditingController controller,
       @required bool darkBackground,
@@ -17,8 +39,14 @@ class Widgets {
         data: ThemeData(
           primaryColor:
               darkBackground ? VoximplantColors.white : VoximplantColors.button,
-          cursorColor:
-              darkBackground ? VoximplantColors.white : VoximplantColors.button,
+          textSelectionTheme: TextSelectionThemeData(
+            cursorColor: darkBackground
+                ? VoximplantColors.white
+                : VoximplantColors.button,
+          ),
+          // cursorColor:
+          //     darkBackground ? VoximplantColors.white : VoximplantColors.button,
+
           hintColor:
               darkBackground ? VoximplantColors.white : VoximplantColors.button,
         ),
@@ -55,9 +83,13 @@ class Widgets {
       child: SizedBox(
         width: double.infinity,
         height: 50,
-        child: RaisedButton(
-          textColor: VoximplantColors.white,
-          color: VoximplantColors.button,
+        child: ElevatedButton(
+          style: ButtonStyle(
+            foregroundColor:
+                MaterialStateProperty.all<Color>(VoximplantColors.white),
+            backgroundColor:
+                MaterialStateProperty.all<Color>(VoximplantColors.button),
+          ),
           onPressed: onPressed,
           child: Text(text),
         ),

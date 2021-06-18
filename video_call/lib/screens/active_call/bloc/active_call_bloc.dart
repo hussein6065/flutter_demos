@@ -6,6 +6,8 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter_callkit_voximplant/flutter_callkit_voximplant.dart';
 import 'package:flutter_voximplant/flutter_voximplant.dart';
 import 'package:video_call/screens/active_call/bloc/active_call_event.dart';
+import 'package:video_call/services/call/audio_device_event.dart';
+
 import 'package:video_call/screens/active_call/bloc/active_call_state.dart';
 import 'package:video_call/services/call/call_event.dart';
 import 'package:video_call/services/call/call_service.dart';
@@ -18,17 +20,22 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       Platform.isIOS ? CallKitService() : null;
 
   StreamSubscription _callStateSubscription;
+  StreamSubscription _audioDeviceSubscription;
 
   ActiveCallBloc(bool isIncoming, String endpoint)
-      : super(ActiveCallState(
-          callStatus: 'Connecting',
-          localVideoStreamID: null,
-          remoteVideoStreamID: null,
-          cameraType: VICameraType.Front,
-          isOnHold: false,
-          isMuted: false,
-          endpointName: '',
-        )) {
+      : super(
+          ActiveCallState(
+            callStatus: 'Connecting',
+            localVideoStreamID: null,
+            remoteVideoStreamID: null,
+            cameraType: VICameraType.Front,
+            availableAudioDevices: [],
+            activeAudioDevice: null,
+            isOnHold: false,
+            isMuted: false,
+            endpointName: '',
+          ),
+        ) {
     add(ReadyToStartCallEvent(isIncoming: isIncoming, endpoint: endpoint));
   }
 
@@ -36,6 +43,9 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
   Future<void> close() {
     if (_callStateSubscription != null) {
       _callStateSubscription.cancel();
+    }
+    if (_audioDeviceSubscription != null) {
+      _audioDeviceSubscription.cancel();
     }
     return super.close();
   }
@@ -46,6 +56,12 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       _callStateSubscription = _callService.subscribeToCallEvents().listen(
         (event) {
           add(CallChangedEvent(event: event));
+        },
+      );
+      _audioDeviceSubscription =
+          _callService.subscribeToAudioDeviceEvents().listen(
+        (event) {
+          add(AudioDevicesChanged(event: event));
         },
       );
 
@@ -75,6 +91,8 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
               '',
           localVideoStreamID: _callService.localVideoStreamId,
           remoteVideoStreamID: _callService.remoteVideoStreamId,
+          availableAudioDevices: _callService.availableAudioDevices,
+          activeAudioDevice: _callService.activeAudioDevice,
         );
       } catch (e) {
         add(CallChangedEvent(event: OnFailedCallEvent(reason: e.toString())));
@@ -91,6 +109,7 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
           reason: callEvent.reason,
           endpointName: state.endpointName,
           cameraType: state.cameraType,
+          activeAudioDevice: state.activeAudioDevice,
           failed: true,
         );
       } else if (callEvent is OnDisconnectedCallEvent) {
@@ -104,6 +123,7 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
           reason: 'Disconnected',
           failed: false,
           endpointName: state.endpointName,
+          activeAudioDevice: state.activeAudioDevice,
           cameraType: state.cameraType,
         );
       } else if (callEvent is OnChangedLocalVideoCallEvent) {
@@ -141,7 +161,7 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       VICameraType cameraToSwitch = state.cameraType == VICameraType.Front
           ? VICameraType.Back
           : VICameraType.Front;
-      await Voximplant().getCameraManager().selectCamera(cameraToSwitch);
+      await Voximplant().cameraManager.selectCamera(cameraToSwitch);
       yield state.copyWith(cameraType: cameraToSwitch);
     } else if (event is HoldPressedEvent) {
       Platform.isIOS
@@ -155,6 +175,15 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       Platform.isIOS
           ? await _callKitService.endCall()
           : await _callService.hangup();
+    } else if (event is SelectAudioDevicePressedEvent) {
+      await _callService.selectAudioDevice(device: event.device);
+    } else if (event is AudioDevicesChanged) {
+      AudioDeviceEvent audioEvent = event.event;
+      if (audioEvent is OnActiveAudioDeviceChanged) {
+        yield state.copyWith(activeAudioDevice: audioEvent.device);
+      } else if (audioEvent is OnAvailableAudioDevicesListChanged) {
+        yield state.copyWith(availableAudioDevices: audioEvent.devices);
+      }
     }
   }
 
@@ -171,6 +200,7 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
     }
   }
 
+  bool get getCallState => _callService.callState == CallState.connected;
   void _log<T>(T message) {
     log('ActiveCallBloc($hashCode): ${message.toString()}');
   }

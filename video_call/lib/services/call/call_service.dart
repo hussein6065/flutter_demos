@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_voximplant/flutter_voximplant.dart';
+import 'package:video_call/services/call/audio_device_event.dart';
 import 'package:meta/meta.dart';
 import 'package:video_call/main.dart';
 import 'package:video_call/services/call/call_event.dart';
@@ -13,6 +14,7 @@ enum CallState { connecting, ringing, connected, ended }
 
 class CallService {
   final VIClient _client;
+  final VIAudioDeviceManager _audioDeviceManager;
 
   VICall _activeCall;
   bool get hasActiveCall => _activeCall != null;
@@ -33,19 +35,66 @@ class CallService {
   Function onIncomingCall;
 
   StreamController<CallEvent> _activeStreamController;
+  StreamController<AudioDeviceEvent> _audioDeviceStreamController;
+  VIAudioDevice get activeAudioDevice => __activeAudioDevice;
+  VIAudioDevice __activeAudioDevice;
+  set _activeAudioDevice(VIAudioDevice device) {
+    _log('onAudioDeviceChanged');
+    __activeAudioDevice = device;
+    _audioDeviceStreamController?.add(
+      OnActiveAudioDeviceChanged(
+        device: device,
+      ),
+    );
+  }
+
+  get availableAudioDevices => __availableAudioDevices;
+  List<VIAudioDevice> __availableAudioDevices;
+  set _availableAudioDevices(List<VIAudioDevice> devices) {
+    _log('onAudioDeviceListChanged');
+    __availableAudioDevices = devices;
+    _audioDeviceStreamController?.add(
+      OnAvailableAudioDevicesListChanged(
+        devices: devices,
+      ),
+    );
+  }
 
   factory CallService() => _cache ?? CallService._();
   static CallService _cache;
-  CallService._() : _client = Voximplant().getClient(defaultConfig) {
+  CallService._()
+      : _client = Voximplant().getClient(defaultConfig),
+        _audioDeviceManager = Voximplant().audioDeviceManager {
     _client.onIncomingCall = _onIncomingCall;
     _client.onPushDidExpire = _pushDidExpire;
+    _configureAudioDevices();
     _cache = this;
+  }
+  void _configureAudioDevices() async {
+    try {
+      _activeAudioDevice = await _audioDeviceManager.getActiveDevice();
+      _availableAudioDevices = await _audioDeviceManager.getAudioDevices();
+    } catch (e) {
+      _log('_configureAudioDevices, error: $e');
+    }
+    _audioDeviceManager.onAudioDeviceChanged = (_, device) {
+      _activeAudioDevice = device;
+    };
+    _audioDeviceManager.onAudioDeviceListChanged = (_, list) {
+      _availableAudioDevices = list;
+    };
   }
 
   Stream<CallEvent> subscribeToCallEvents() {
     _activeStreamController?.close();
     _activeStreamController = StreamController.broadcast();
     return _activeStreamController?.stream;
+  }
+
+  Stream<AudioDeviceEvent> subscribeToAudioDeviceEvents() {
+    _audioDeviceStreamController?.close();
+    _audioDeviceStreamController = StreamController.broadcast();
+    return _audioDeviceStreamController?.stream;
   }
 
   Future<void> makeCall({@required String callTo}) async {
@@ -55,7 +104,8 @@ class CallService {
     VICallSettings callSettings = VICallSettings();
     callSettings.videoFlags = VIVideoFlags(receiveVideo: true, sendVideo: true);
     callSettings.preferredVideoCodec = VIVideoCodec.VP8;
-    _activeCall = await _client.call(callTo, callSettings);
+    _activeCall = await _client.call(callTo);
+    // _activeCall = await _client.call(callTo, callSettings);
     _callState = CallState.connecting;
     _listenToActiveCallEvents();
   }
@@ -67,7 +117,8 @@ class CallService {
     VICallSettings callSettings = VICallSettings();
     callSettings.videoFlags = VIVideoFlags(receiveVideo: true, sendVideo: true);
     callSettings.preferredVideoCodec = VIVideoCodec.VP8;
-    await _activeCall.answer(callSettings);
+    await _activeCall.answer();
+    // await _activeCall.answer(callSettings);
   }
 
   Future<void> hangup() async {
@@ -99,6 +150,9 @@ class CallService {
     await _activeCall.hold(hold);
     _activeStreamController?.add(OnHoldCallEvent(hold: hold));
   }
+
+  Future<void> selectAudioDevice({@required VIAudioDevice device}) async =>
+      await _audioDeviceManager.selectAudioDevice(device);
 
   Future<void> sendVideo({@required bool send}) async {
     if (hasNoActiveCalls) {

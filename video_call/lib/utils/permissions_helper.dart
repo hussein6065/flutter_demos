@@ -6,7 +6,7 @@ Future<bool> checkPermissions() async {
   if (Platform.isAndroid) {
     PermissionStatus recordAudio = await Permission.microphone.status;
     PermissionStatus camera = await Permission.camera.status;
-    List<Permission> requestPermissions = List();
+    List<Permission> requestPermissions = [];
     if (recordAudio != PermissionStatus.granted) {
       requestPermissions.add(Permission.microphone);
     }
