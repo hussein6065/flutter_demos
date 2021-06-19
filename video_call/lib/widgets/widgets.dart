@@ -5,7 +5,6 @@ import 'package:video_call/theme/voximplant_theme.dart';
 class Widgets {
   static Widget timerLabel({@required String text}) {
     return Container(
-      // ch/ild:
       child: Text(
         text,
         textAlign: TextAlign.center,
