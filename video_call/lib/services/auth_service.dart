@@ -83,7 +83,12 @@ class AuthService {
 
   Future<void> logout() async {
     await _client.disconnect();
-    VILoginTokens loginTokens = VILoginTokens();
+    VILoginTokens loginTokens = VILoginTokens(
+      accessToken: '',
+      accessExpire: 0,
+      refreshExpire: 0,
+      refreshToken: '',
+    );
     _saveAuthDetails(null, loginTokens);
   }
 
@@ -108,11 +113,16 @@ class AuthService {
   }
 
   VILoginTokens _getAuthDetails(SharedPreferences prefs) {
-    VILoginTokens loginTokens = VILoginTokens();
-    loginTokens.accessToken = prefs.getString('accessToken');
-    loginTokens.accessExpire = prefs.getInt('accessExpire');
-    loginTokens.refreshExpire = prefs.getInt('refreshExpire');
-    loginTokens.refreshToken = prefs.getString('refreshToken');
+    VILoginTokens loginTokens = VILoginTokens(
+      accessToken: prefs.getString('accessToken'),
+      accessExpire: prefs.getInt('accessExpire'),
+      refreshExpire: prefs.getInt('refreshExpire'),
+      refreshToken: prefs.getString('refreshToken'),
+    );
+    // loginTokens.accessToken = prefs.getString('accessToken');
+    // loginTokens.accessExpire = prefs.getInt('accessExpire');
+    // loginTokens.refreshExpire = prefs.getInt('refreshExpire');
+    // loginTokens.refreshToken = prefs.getString('refreshToken');
 
     return loginTokens;
   }

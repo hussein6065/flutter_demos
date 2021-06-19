@@ -3,6 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:video_call/theme/voximplant_theme.dart';
 
 class Widgets {
+  static Widget timerLabel({@required String text}) {
+    return Container(
+      // ch/ild:
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 25,
+          color: Colors.white,
+        ),
+      ),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      // decoration: BoxDecoration(
+      //     color: VoximplantColors.button,
+      //     borderRadius: BorderRadius.circular(5)),
+    );
+  }
+
   static Widget textFormField(
       {@required TextEditingController controller,
       @required bool darkBackground,

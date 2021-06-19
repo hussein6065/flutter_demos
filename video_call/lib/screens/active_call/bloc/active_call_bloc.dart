@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_callkit_voximplant/flutter_callkit_voximplant.dart';
 import 'package:flutter_voximplant/flutter_voximplant.dart';
+import 'package:video_call/services/call/audio_device_event.dart';
 import 'package:video_call/screens/active_call/bloc/active_call_event.dart';
 import 'package:video_call/screens/active_call/bloc/active_call_state.dart';
 import 'package:video_call/services/call/call_event.dart';
@@ -18,17 +19,21 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       Platform.isIOS ? CallKitService() : null;
 
   StreamSubscription _callStateSubscription;
+  StreamSubscription _audioDeviceSubscription;
 
   ActiveCallBloc(bool isIncoming, String endpoint)
-      : super(ActiveCallState(
-          callStatus: 'Connecting',
-          localVideoStreamID: null,
-          remoteVideoStreamID: null,
-          cameraType: VICameraType.Front,
-          isOnHold: false,
-          isMuted: false,
-          endpointName: '',
-        )) {
+      : super(
+          ActiveCallState(
+              callStatus: 'Connecting',
+              localVideoStreamID: null,
+              remoteVideoStreamID: null,
+              cameraType: VICameraType.Front,
+              isOnHold: false,
+              isMuted: false,
+              endpointName: '',
+              activeAudioDevice: null,
+              availableAudioDevices: []),
+        ) {
     add(ReadyToStartCallEvent(isIncoming: isIncoming, endpoint: endpoint));
   }
 
@@ -36,6 +41,9 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
   Future<void> close() {
     if (_callStateSubscription != null) {
       _callStateSubscription.cancel();
+    }
+    if (_audioDeviceSubscription != null) {
+      _audioDeviceSubscription.cancel();
     }
     return super.close();
   }
@@ -48,7 +56,12 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
           add(CallChangedEvent(event: event));
         },
       );
-
+      _audioDeviceSubscription =
+          _callService.subscribeToAudioDeviceEvents().listen(
+        (event) {
+          add(AudioDevicesChanged(event: event));
+        },
+      );
       try {
         if (event.isIncoming) {
           if (Platform.isAndroid) {
@@ -57,12 +70,14 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
             } else {
               _callService.onIncomingCall = (_) async {
                 await _callService.answerCall();
+                //  Trigger the the counting label
               };
             }
           }
         } else /* if (direction == outgoing) */ {
           if (Platform.isAndroid) {
             await _callService.makeCall(callTo: event.endpoint);
+            //  Trigger the counting label
           } else if (Platform.isIOS) {
             await _callKitService.startOutgoingCall(event.endpoint);
           }
@@ -75,6 +90,8 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
               '',
           localVideoStreamID: _callService.localVideoStreamId,
           remoteVideoStreamID: _callService.remoteVideoStreamId,
+          availableAudioDevices: _callService.availableAudioDevices,
+          activeAudioDevice: _callService.activeAudioDevice,
         );
       } catch (e) {
         add(CallChangedEvent(event: OnFailedCallEvent(reason: e.toString())));
@@ -88,11 +105,12 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
           reason: FCXCallEndedReason.failed,
         );
         yield CallEndedActiveCallState(
-          reason: callEvent.reason,
-          endpointName: state.endpointName,
-          cameraType: state.cameraType,
-          failed: true,
-        );
+            reason: callEvent.reason,
+            endpointName: state.endpointName,
+            cameraType: state.cameraType,
+            failed: true,
+            activeAudioDevice: state.activeAudioDevice,
+            availableAudioDevices: state.availableAudioDevices);
       } else if (callEvent is OnDisconnectedCallEvent) {
         _log('onDisconnected event');
         if (Platform.isIOS) {
@@ -101,11 +119,12 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
           );
         }
         yield CallEndedActiveCallState(
-          reason: 'Disconnected',
-          failed: false,
-          endpointName: state.endpointName,
-          cameraType: state.cameraType,
-        );
+            reason: 'Disconnected',
+            failed: false,
+            endpointName: state.endpointName,
+            cameraType: state.cameraType,
+            activeAudioDevice: state.activeAudioDevice,
+            availableAudioDevices: state.availableAudioDevices);
       } else if (callEvent is OnChangedLocalVideoCallEvent) {
         _log('onChangedLocalVideo event');
         yield state.copyWithLocalStream(callEvent.streamId);
@@ -141,7 +160,7 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       VICameraType cameraToSwitch = state.cameraType == VICameraType.Front
           ? VICameraType.Back
           : VICameraType.Front;
-      await Voximplant().getCameraManager().selectCamera(cameraToSwitch);
+      await Voximplant().cameraManager.selectCamera(cameraToSwitch);
       yield state.copyWith(cameraType: cameraToSwitch);
     } else if (event is HoldPressedEvent) {
       Platform.isIOS
@@ -155,6 +174,15 @@ class ActiveCallBloc extends Bloc<ActiveCallEvent, ActiveCallState> {
       Platform.isIOS
           ? await _callKitService.endCall()
           : await _callService.hangup();
+    } else if (event is SelectAudioDevicePressedEvent) {
+      await _callService.selectAudioDevice(device: event.device);
+    } else if (event is AudioDevicesChanged) {
+      AudioDeviceEvent audioEvent = event.event;
+      if (audioEvent is OnActiveAudioDeviceChanged) {
+        yield state.copyWith(activeAudioDevice: audioEvent.device);
+      } else if (audioEvent is OnAvailableAudioDevicesListChanged) {
+        yield state.copyWith(availableAudioDevices: audioEvent.devices);
+      }
     }
   }
 

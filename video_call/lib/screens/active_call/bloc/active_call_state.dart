@@ -7,24 +7,31 @@ import 'package:meta/meta.dart';
 class ActiveCallState implements Equatable {
   final String callStatus;
   final String endpointName;
+  final VIAudioDevice activeAudioDevice;
+  final List<VIAudioDevice> availableAudioDevices;
   final String localVideoStreamID;
   final String remoteVideoStreamID;
   final VICameraType cameraType;
   final bool isOnHold;
   final bool isMuted;
 
-  ActiveCallState(
-      {@required this.callStatus,
-      @required this.endpointName,
-      @required this.localVideoStreamID,
-      @required this.remoteVideoStreamID,
-      @required this.cameraType,
-      @required this.isOnHold,
-      @required this.isMuted});
+  ActiveCallState({
+    @required this.callStatus,
+    @required this.endpointName,
+    @required this.localVideoStreamID,
+    @required this.remoteVideoStreamID,
+    @required this.cameraType,
+    @required this.isOnHold,
+    @required this.isMuted,
+    @required this.activeAudioDevice,
+    @required this.availableAudioDevices,
+  });
 
   ActiveCallState copyWith({
     String endpointName,
     String callStatus,
+    VIAudioDevice activeAudioDevice,
+    List<VIAudioDevice> availableAudioDevices,
     String localVideoStreamID,
     String remoteVideoStreamID,
     VICameraType cameraType,
@@ -36,6 +43,9 @@ class ActiveCallState implements Equatable {
         callStatus: callStatus ?? this.callStatus,
         localVideoStreamID: localVideoStreamID ?? this.localVideoStreamID,
         remoteVideoStreamID: remoteVideoStreamID ?? this.remoteVideoStreamID,
+        activeAudioDevice: activeAudioDevice ?? this.activeAudioDevice,
+        availableAudioDevices:
+            availableAudioDevices ?? this.availableAudioDevices,
         cameraType: cameraType ?? this.cameraType,
         isOnHold: isOnHold ?? this.isOnHold,
         isMuted: isMuted ?? this.isMuted,
@@ -50,6 +60,8 @@ class ActiveCallState implements Equatable {
         cameraType: this.cameraType,
         isOnHold: this.isOnHold,
         isMuted: this.isMuted,
+        activeAudioDevice: this.activeAudioDevice,
+        availableAudioDevices: this.availableAudioDevices,
       );
 
   ActiveCallState copyWithRemoteStream(String remoteVideoStreamID) =>
@@ -61,11 +73,20 @@ class ActiveCallState implements Equatable {
         cameraType: this.cameraType,
         isOnHold: this.isOnHold,
         isMuted: this.isMuted,
+        activeAudioDevice: this.activeAudioDevice,
+        availableAudioDevices: this.availableAudioDevices,
       );
 
   @override
-  List<Object> get props =>
-      [callStatus, localVideoStreamID, remoteVideoStreamID, isOnHold, isMuted];
+  List<Object> get props => [
+        callStatus,
+        localVideoStreamID,
+        remoteVideoStreamID,
+        isOnHold,
+        isMuted,
+        activeAudioDevice,
+        availableAudioDevices,
+      ];
 
   @override
   bool get stringify => true;
@@ -81,6 +102,8 @@ class ReadyActiveCallState extends ActiveCallState {
           remoteVideoStreamID: null,
           isOnHold: false,
           isMuted: false,
+          activeAudioDevice: null,
+          availableAudioDevices: [],
         );
 }
 
@@ -89,12 +112,14 @@ class CallEndedActiveCallState extends ActiveCallState {
   final bool failed;
   final String reason;
 
-  CallEndedActiveCallState(
-      {@required this.reason,
-      @required this.failed,
-      @required endpointName,
-      @required VICameraType cameraType})
-      : super(
+  CallEndedActiveCallState({
+    @required this.reason,
+    @required this.failed,
+    @required endpointName,
+    @required VICameraType cameraType,
+    @required activeAudioDevice,
+    @required availableAudioDevices,
+  }) : super(
           callStatus: failed ? 'Failed' : 'Disconnected',
           localVideoStreamID: null,
           remoteVideoStreamID: null,
@@ -102,6 +127,8 @@ class CallEndedActiveCallState extends ActiveCallState {
           cameraType: cameraType,
           isOnHold: false,
           isMuted: false,
+          availableAudioDevices: List.empty(),
+          activeAudioDevice: activeAudioDevice,
         );
 
   @override
