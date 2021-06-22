@@ -185,6 +185,12 @@ class CallService {
         username: _activeCall?.endpoints?.first?.userName,
         displayName: _activeCall?.endpoints?.first?.displayName,
         video: video));
+
+    NotificationHelper().displayNotification(
+      title: 'Incoming Call',
+      description: 'from ${_activeCall?.endpoints?.first?.displayName}',
+      payload: '${_activeCall?.endpoints?.first?.displayName}',
+    );
     if (onIncomingCall != null) {
       onIncomingCall();
       onIncomingCall = null;

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_call/screens/active_call/active_call.dart';
 import 'package:video_call/screens/incoming_call/incoming_call.dart';
 import 'package:video_call/utils/navigation_helper.dart';
+import 'package:video_call/utils/notification_helper.dart';
 import 'package:video_call/widgets/widgets.dart';
 
 import 'bloc/main_bloc.dart';
@@ -148,6 +149,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                             text: 'Video call',
                             onPressed: _makeVideoCall,
                           ),
+                          // Widgets.maxWidthRaisedButton(
+                          //   text: 'Notification',
+                          //   onPressed: () {
+                          //     print(
+                          //         'I have been clicked but I have refused to work');
+                          //     NotificationHelper().displayNotification(
+                          //       title: 'Hello Hussein',
+                          //       description: "I love you",
+                          //       payload: 'Hussein',
+                          //     );
+                          //   },
+                          // ),
                         ],
                       ),
                     ),
