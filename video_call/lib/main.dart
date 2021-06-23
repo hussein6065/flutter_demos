@@ -18,6 +18,7 @@ import 'package:video_call/theme/voximplant_theme.dart';
 import 'package:video_call/utils/log.dart';
 import 'package:video_call/utils/navigation_helper.dart';
 import 'package:video_call/utils/notification_helper.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class SimpleBlocDelegate extends BlocObserver {
   @override
@@ -33,17 +34,18 @@ class SimpleBlocDelegate extends BlocObserver {
   }
 
   @override
-  void onError(Cubit cubit, Object error, StackTrace stackTrace) {
-    super.onError(cubit, error, stackTrace);
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    super.onError(bloc, error, stackTrace);
     log(error);
   }
 }
 
 VIClientConfig get defaultConfig => VIClientConfig();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = SimpleBlocDelegate();
+  await Firebase.initializeApp();
 
   AuthService();
   CallService();

@@ -1,7 +1,8 @@
 /// Copyright (c) 2011-2020, Zingaya, Inc. All rights reserved.
 import 'dart:async';
-
+// import 'package:device_info/device_info.dart';
 import 'package:flutter/foundation.dart';
+// import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:video_call/utils/log.dart';
 
@@ -9,6 +10,7 @@ import 'navigation_helper.dart';
 
 // Used in Android only
 // On iOS CallKit is used to notify user about calls
+
 class NotificationHelper {
   int _notificationId = 100;
   final FlutterLocalNotificationsPlugin _plugin;
@@ -40,6 +42,7 @@ class NotificationHelper {
     String payload,
   }) async {
     _log('displayNotification title: $title, description: $description');
+
     await _plugin.show(
       _notificationId,
       title,
@@ -51,7 +54,10 @@ class NotificationHelper {
           'Incoming calls notifications',
           importance: Importance.max,
           priority: Priority.max,
+          fullScreenIntent: true,
           ticker: 'incoming call',
+          playSound: true,
+          // sound: uriSound,
         ),
       ),
       payload: payload,

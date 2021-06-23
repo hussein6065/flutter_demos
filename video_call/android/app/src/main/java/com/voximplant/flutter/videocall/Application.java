@@ -7,8 +7,8 @@ import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.PluginRegistrantCallback;
 import io.flutter.plugins.GeneratedPluginRegistrant;
-import io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin;
-import io.flutter.plugins.firebasemessaging.FlutterFirebaseMessagingService;
+//import io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin;
+//import io.flutter.plugins.firebasemessaging.FlutterFirebaseMessagingService;
 import io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin;
 import com.dexterous.flutterlocalnotifications.FlutterLocalNotificationsPlugin;
 
@@ -16,7 +16,7 @@ public class Application extends FlutterApplication implements PluginRegistrantC
     @Override
     public void onCreate() {
         super.onCreate();
-        FlutterFirebaseMessagingService.setPluginRegistrant(this);
+//        FlutterFirebaseMessagingService.setPluginRegistrant(this);
     }
 
     @Override
@@ -27,6 +27,6 @@ public class Application extends FlutterApplication implements PluginRegistrantC
 //        GeneratedPluginRegistrant.registerWith(registry);
         FlutterLocalNotificationsPlugin.registerWith(registry.registrarFor("com.dexterous.flutterlocalnotifications.FlutterLocalNotificationsPlugin"));
         SharedPreferencesPlugin.registerWith(registry.registrarFor("io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin"));
-        FirebaseMessagingPlugin.registerWith(registry.registrarFor("io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin"));
+//        FirebaseMessagingPlugin.registerWith(registry.registrarFor("io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin"));
     }
 }
